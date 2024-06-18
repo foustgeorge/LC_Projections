@@ -659,3 +659,57 @@ def MGT(v_Signal,fs,f1,f2,step):
     m_Transform = np.array(m_Transform)
 
     return m_Transform
+
+def BPM(emg,b, Fs, filtertrace =False):
+
+    """
+    Function to extract BPM translated from the MATLAB version written by Romain Cardis in 2020
+
+    inputs:
+    emg: bipolarised emg signal
+    b: scored b file
+    Fs: sampling frequency of the emg signal
+    filterTrace: flag to decide if the signal will be filtered or not
+
+    output
+    bpm: heart rate singal
+    """
+
+
+    if Fs == 1000:
+      emg = signal.resample(emg, int(emg.shape[0] / 5))
+
+    bf, af = signal.cheby2(6, 40, 25 / 100, btype='high', analog=False, output='ba')
+
+    emg = signal.filtfilt(bf, af, emg)
+
+    hr = np.abs(np.concatenate(([0],np.diff(emg))))
+
+    timestamps = np.arange(0,emg.shape[0]/Fs,1/200)
+
+    TimesOfb = np.arange(0,(len(b))*4,4)
+
+    NREMbouts = re.finditer('(?=nnn)',b)
+
+    PointsNorm = []
+
+    for nrembout in NREMbouts:
+
+     PointStart = int(nrembout.span()[0])
+     PointEnd = int(nrembout.span()[0]) + 1
+
+     PointStartSec = TimesOfb[PointStart]
+     PointsEndSec = TimesOfb[PointEnd]
+
+     PosStart = findPosFromTimestamps(PointStartSec, timestamps)
+     PosEnd = findPosFromTimestamps(PointsEndSec, timestamps)
+
+     PointsNorm.append(hr[PosStart:PosEnd])
+
+    PointsNorm = np.array(PointsNorm)
+
+    hr = (hr - np.mean(PointsNorm,axis=0))/np.std(PointsNorm,axis=0)
+
+
+
+    return
