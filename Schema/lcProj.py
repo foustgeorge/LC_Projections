@@ -364,5 +364,23 @@ class MGT(dj.Computed):
         MGT_autopopulation(self, key)
 
 
+@schema
+class HR(dj.Computed):
+    definition = """
+    # compute the heart rate extracted from the bipolarized EMG signal
+    ->BaselineSession
+    ---
+    heart_rate  :longblob                                # beats per minutes 
+    """
+
+    def _make_tuples(self, key):
+        from Schema.AutopopulationFunctionsLCProj import (
+            HR_autopopulation,
+        )
+
+        HR_autopopulation(self, key)
+
+
+
 
 

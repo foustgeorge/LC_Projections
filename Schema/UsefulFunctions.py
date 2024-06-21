@@ -660,6 +660,30 @@ def MGT(v_Signal,fs,f1,f2,step):
 
     return m_Transform
 
+def nan_helper(y):
+    """Helper to handle indices and logical indices of NaNs.
+
+    Input:
+        - y, 1d numpy array with possible NaNs
+    Output:
+        - nans, logical indices of NaNs
+        - index, a function, with signature indices= index(logical_indices),
+          to convert logical indices of NaNs to 'equivalent' indices
+    """
+
+    return np.isnan(y), lambda z: z.nonzero()[0]
+
+def interpNan(y):
+
+    ycopy = y.copy()
+
+    nans, x = nan_helper(ycopy)
+
+    ycopy[nans] = np.interp(x(nans), x(~nans), ycopy[~nans])
+
+    return ycopy
+
+
 def BPM(emg,b, Fs, filtertrace =False):
 
     """
@@ -672,20 +696,21 @@ def BPM(emg,b, Fs, filtertrace =False):
     filterTrace: flag to decide if the signal will be filtered or not
 
     output
-    bpm: heart rate singal
+    bpm: heart rate signal
     """
 
 
     if Fs == 1000:
       emg = signal.resample(emg, int(emg.shape[0] / 5))
+      Fs = 200
 
-    bf, af = signal.cheby2(6, 40, 25 / 100, btype='high', analog=False, output='ba')
+    bf, af = signal.cheby2(6, 40, 25 / (Fs/2), btype='high', analog=False, output='ba')
 
     emg = signal.filtfilt(bf, af, emg)
 
     hr = np.abs(np.concatenate(([0],np.diff(emg))))
 
-    timestamps = np.arange(0,emg.shape[0]/Fs,1/200)
+    timestamps = np.arange(0,emg.shape[0]/Fs,1/Fs)
 
     TimesOfb = np.arange(0,(len(b))*4,4)
 
@@ -708,8 +733,46 @@ def BPM(emg,b, Fs, filtertrace =False):
 
     PointsNorm = np.array(PointsNorm)
 
-    hr = (hr - np.mean(PointsNorm,axis=0))/np.std(PointsNorm,axis=0)
+    PointsNorm =  PointsNorm.flatten()
 
+    hr = (hr - np.mean(PointsNorm)) / np.std(PointsNorm)
 
+    peaks, properties = signal.find_peaks(hr, height = 0.3, distance = 0.08*200)
 
-    return
+    peaksToKeep = []
+
+    for i, peak in enumerate(peaks):
+
+        if not(properties['peak_heights'][i] > 10):
+
+            peaksToKeep.append(peak)
+
+    peaksToKeep = np.array(peaksToKeep) / Fs
+    bpm = 1. / np.diff(peaksToKeep) * 60
+
+    toLow = bpm<300
+    peaksToKeep = peaksToKeep[1::]
+
+    peaksToKeep = np.delete(peaksToKeep, toLow)
+    bpm = np.delete(bpm,toLow)
+
+    dbpm = np.concatenate(([0], np.abs(np.diff(bpm))))
+
+    jum = dbpm > 200
+    bpm[jum] = np.nan
+
+    bpmFinal = interpNan(bpm)
+
+    x10 = np.linspace(0, int(len(emg) / Fs), int(len(emg) / (Fs/10)))
+
+    bpm10 = np.interp(x10, peaksToKeep, bpmFinal)
+
+    bpm10 = interpNan(bpm10)
+
+    if filtertrace:
+
+        b = signal.firwin(100, 0.025 / 10, pass_zero='lowpass')
+
+        bpm10 = signal.filtfilt(b,1,bpm10)
+
+    return bpm10

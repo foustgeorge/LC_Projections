@@ -19,7 +19,7 @@ import datetime
 import re
 from textwrap import wrap
 from scipy.stats import norm
-from Schema.UsefulFunctions import ElimMA, deltaDynamics, maDynamics, CorrectMirrorAnimals, findPosFromTimestamps,binning, MGT
+from Schema.UsefulFunctions import ElimMA, deltaDynamics, maDynamics, CorrectMirrorAnimals, findPosFromTimestamps,binning, MGT, BPM
 from Schema.PeakDetection import PeakDetection
 from Schema.baseline import baseline
 
@@ -2117,7 +2117,26 @@ def MGT_autopopulation(self, key):
 
     self.insert1(key)
 
+def HR_autopopulation(self, key):
 
+    print('Computing mouse: ' + key['mouse_name'] + ' for session: ' + (lcProj.Session & key).fetch1('session_date'))
+
+    fileName = (lcProj.Session & key).fetch1('file_name')
+
+    print('Loading traces---')
+    matFile = mat73.loadmat(fileName)
+
+    traces = matFile['traces']
+
+    EMG = traces[3,:] - traces[2,:]
+
+    b = (lcProj.Hypnogram & key).fetch1('bfile')
+
+    bpm = BPM(EMG,b,1000, True)
+
+    key['heart_rate'] = bpm
+
+    self.insert1(key)
 
 
 

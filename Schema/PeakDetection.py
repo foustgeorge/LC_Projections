@@ -198,8 +198,8 @@ def PeakDetection(dff,b_file, time):
     high_lowpass = signal.firwin(1000, 0.5 / (sampling_freq / 2), pass_zero='lowpass')
     low_lowpass = signal.firwin(1000, 0.1 / (sampling_freq / 2), pass_zero='lowpass')
 
-    dff_high = signal.filtfilt(high_lowpass, -1, dff)
-    dff_low = signal.filtfilt(low_lowpass, -1, dff)
+    dff_high = signal.filtfilt(high_lowpass, 1, dff)
+    dff_low = signal.filtfilt(low_lowpass, 1, dff)
 
     # compute the envelope of the signal (low and upper)
     peaks, troughs, dff_upper_enveloppe, dff_lower_enveloppe = Get_envelope(dff_low)
