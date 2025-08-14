@@ -630,13 +630,15 @@ def TimeSpentTransitionsDynamics_autopopulation(self, key):
     """
     TimeSpentTransitionsDynamics_autopopulation
     -------------
-    Auto-populates processed neuroscience experiment data into a DataJoint table.
+    Computes the time spent in each sleep state and transitions dynamics using the hypnogram scored file
 
     Workflow:
     ---------
     1. Fetch required raw data from the database.
-    2. Perform task-specific preprocessing or calculations.
-    3. Insert results into the database.
+    2. Extracts the bouts of NREM, REM and Wake using character detection in the hypnogram files using the full file or a windowed version of it
+    3. Computes the time spent in each sleep state usign the extracted bouts
+    4. Compute the number of transitions to REM sleep for the windowed signal also
+    5. Insert results into the database (the bouts are also inserted)
 
     Parameters
     ----------
@@ -792,13 +794,15 @@ def  DFFSleepStates_autopopulation(self, key):
     """
     DFFSleepStates_autopopulation
     -------------
-    Auto-populates processed neuroscience experiment data into a DataJoint table.
+    Compute the mean DF/F0 value of the LC fiber photometry signal for each sleep state
 
     Workflow:
     ---------
     1. Fetch required raw data from the database.
-    2. Perform task-specific preprocessing or calculations.
-    3. Insert results into the database.
+    2. Reduce the DF/F0 only to certain amount of hours (using the window value) to avoid photo-bleaching issues and Z-scored it
+    3. Use the hypnogram to find the timepoints of each sleep state and get the corresponding DF/F0 values
+    4. Safely concatenate and mean the data
+    5. Insert results into the database.
 
     Parameters
     ----------
@@ -899,29 +903,6 @@ def  DFFSleepStates_autopopulation(self, key):
         # key['mean_wake'] = np.mean(DffWake)
 
         def safe_mean_concat(data_list):
-    """
-    safe_mean_concat
-    -------------
-    Auto-populates processed neuroscience experiment data into a DataJoint table.
-
-    Workflow:
-    ---------
-    1. Fetch required raw data from the database.
-    2. Perform task-specific preprocessing or calculations.
-    3. Insert results into the database.
-
-    Parameters
-    ----------
-    self : DataJoint table object
-        Target table for data insertion.
-    key : dict
-        Primary key identifying the session.
-
-    Returns
-    -------
-    None
-        Inserts the processed data into the target table.
-    """
             return np.mean(np.concatenate(data_list)) if data_list else np.nan
 
         key['mean_rem_zscored'] = safe_mean_concat(DffREMZScored)
