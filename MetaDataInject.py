@@ -4,8 +4,8 @@
 #  Automates ingestion of mouse metadata and experimental session
 #  details into the DataJoint lcProj schema.
 #
-#  Author: [Your Name or Initials]
-#  Date: [Current Date]
+#  Author: Georgios Foustoukos
+#  Date: 14.08.2025
 #  ------------------------------------------------------------
 #  Key Skills Demonstrated:
 #    • Batch CSV parsing & ingestion to relational DB (DataJoint)
