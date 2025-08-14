@@ -1,11 +1,34 @@
-# A DataJoint based pipeline for analysis of sleep recording in rodents together with fiber photometry data.
+# DataJoint-Based Pipeline for Sleep Recording and Fiber Photometry Analysis in Rodents
 
-This code included different functions which can be used to analysis sleep recordings (EEG and EMG data) combied in fiber photometry measuremnents. In the current example the photometry recordings are conducted in the locus coeruleus (LC) of the mouse brain. 
+Features
 
-For more information regarding DataJoint and how to set it up locally, the documentation can be found here:
+Automated data ingestion from CSV metadata and MATLAB .mat files
 
+Support for multiple experimental paradigms:
 
-https://github.com/datajoint
+Baseline fiber photometry
 
+Sleep deprivation (SD)
 
-Code for analysis for photometry data for different LC projection neurons combined with polysomnography.
+Sensory-enhanced sleep deprivation (SSD)
+
+Fear conditioning (training, recall, extinction)
+
+Integration with DataJoint for relational database management
+
+Robust handling of missing values and standardized metadata formats
+
+Requirements
+
+Python 3.x
+
+DataJoint
+
+pandas, numpy, tqdm, pathlib, glob
+
+mat73 for MATLAB .mat file reading
+
+Documentation & Setup
+
+To learn more about DataJoint and how to configure it locally, please refer to the official documentation:
+DataJoint GitHub Repository
