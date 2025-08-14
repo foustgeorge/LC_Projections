@@ -16,6 +16,6 @@ This repository provides Python code to build and run a **DataJoint-powered data
 ## Requirements
 
 - Python 3.x
-- [DataJoint](https://github.com/datajoint/datajoint-python)
+- [DataJoint](https://github.com/datajoint/datajoint-python). On how to run Datajoint locally using Docker please follow the provided documentation at the website
 - pandas, numpy, tqdm, pathlib, glob
 - mat73 (for reading MATLAB `.mat` files)
