@@ -915,18 +915,18 @@ def  DFFSleepStates_autopopulation(self, key):
         self.insert1(key)
 
 
-
 def NremRemMeanDFF_autopopulation(self, key):
     """
     NremRemMeanDFF_autopopulation
     -------------
-    Auto-populates processed neuroscience experiment data into a DataJoint table.
+    Computes the mean DF/F0 values either during a REM episode or between two REM Episodes (in the NREM sleep between the two REM sleeps)
 
     Workflow:
     ---------
     1. Fetch required raw data from the database.
-    2. Perform task-specific preprocessing or calculations.
-    3. Insert results into the database.
+    2. Finds the REM bouts in the hypnogram and computes the DF/F0 values during those bouts
+    3. Using the found REM bouts extracts the NREM sleep between two consecutive REM bouts and computes the mean DF/F0 in those
+    4. Means the data and inserts in the database
 
     Parameters
     ----------
@@ -1068,8 +1068,6 @@ def NremRemMeanDFF_autopopulation(self, key):
 
     key['inter_rem_length'] = DffInterREMAllBinned
     key['rem_length'] = Rlength
-
-
     self.insert1(key)
 
 
@@ -1114,94 +1112,6 @@ def LCPeaks_autopopulation(self, key):
 
     self.insert1(key)
 
-def LFPSignals_autopopulation(self, key):
-    """
-    LFPSignals_autopopulation
-    -------------
-    Auto-populates processed neuroscience experiment data into a DataJoint table.
-
-    Workflow:
-    ---------
-    1. Fetch required raw data from the database.
-    2. Perform task-specific preprocessing or calculations.
-    3. Insert results into the database.
-
-    Parameters
-    ----------
-    self : DataJoint table object
-        Target table for data insertion.
-    key : dict
-        Primary key identifying the session.
-
-    Returns
-    -------
-    None
-        Inserts the processed data into the target table.
-    """
-
-    print('Computing mouse: ' + key['mouse_name'] + ' for session: ' + (lcProj.Session & key).fetch1('session_date'))
-
-    fileName = (lcProj.Session & key).fetch1('file_name')
-    print('Loading traces---')
-    matFile = mat73.loadmat(fileName)
-    traces = matFile['traces']
-
-    if (lcProj.LFPGoodQuality & key).fetch1('quality_hip'):
-        LFP_Hip = traces[5, :]
-
-        # one mouse with different configuration
-        if ((key['mouse_name'] == 'MPC05') and (key['session_date'] == "2023-08-07")) or ((key['mouse_name'] == 'THAL01') and (key['session_date'] == "2023-08-01")):
-
-            print('Different configuration')
-            LFP_Hip = traces[4, :]
-
-        LFP_Hip = signal.resample(LFP_Hip, int(LFP_Hip.shape[0] / 5))
-        key['lfp_hip'] =  LFP_Hip
-        print('Hip injected')
-
-    else:
-        LFP_Hip = np.zeros([traces[5, :].shape[0]])*np.nan
-        LFP_Hip = signal.resample(LFP_Hip, int(LFP_Hip.shape[0] / 5))
-        key['lfp_hip'] = LFP_Hip
-        print('dCA1 bad quality')
-
-    if (lcProj.LFPGoodQuality & key).fetch1('quality_s1'):
-        LFP_S1 = traces[4, :]
-
-            # one mouse with different configuration
-        if ((key['mouse_name'] == 'MPC05') and (key['session_date'] == "2023-08-07")) or ((key['mouse_name'] == 'THAL01') and (key['session_date'] == "2023-08-01")):
-
-            print('Different configuration')
-            LFP_S1 = traces[5, :]
-
-        LFP_S1 = signal.resample(LFP_S1, int(LFP_S1.shape[0] / 5))
-        key['lfp_s1'] = LFP_S1
-        print('S1 injected')
-    else:
-        LFP_S1 = np.zeros([traces[4, :].shape[0]])*np.nan
-        LFP_S1 = signal.resample(LFP_S1, int(LFP_S1.shape[0] / 5))
-        key['lfp_s1'] = LFP_S1
-        print('S1 bad quality')
-
-
-    if (lcProj.LFPGoodQuality & key).fetch1('quality_pfc'):
-        LFP_PFC = traces[6, :]
-            # one mouse with different configuration
-        if ((key['mouse_name'] == 'MPC05') and (key['session_date'] == "2023-08-07")) or ((key['mouse_name'] == 'THAL01') and (key['session_date'] == "2023-08-01")):
-
-            print('Different configuration')
-            LFP_PFC = traces[6, :]
-
-        LFP_PFC = signal.resample(LFP_PFC, int(LFP_PFC.shape[0] / 5))
-        key['lfp_pfc'] = LFP_PFC
-        print('mPFC injected')
-    else:
-        LFP_PFC = np.zeros([traces[6, :].shape[0]])*np.nan
-        LFP_PFC = signal.resample(LFP_PFC, int(LFP_PFC.shape[0] / 5))
-        key['lfp_pfc'] = LFP_PFC
-        print('mPFC bad quality')
-
-    self.insert1(key)
 
 def MGT_autopopulation(self, key):
     """
@@ -1553,6 +1463,7 @@ def LCFreq_autopopulation(self, key):
                 self.insert1(key)
             else:
                 print('No recording for this session')
+
 def FCBehaviour_autopopulation(self, key):
     """
     FCBehaviour_autopopulation
