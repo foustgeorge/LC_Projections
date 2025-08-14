@@ -134,42 +134,6 @@ class FibDFF(dj.Computed):
         FibDFF_autopopulation(self, key)
 
 @schema
-class LFPGoodQuality(dj.Computed):
-    definition = """
-    #Checking the quality of the LFP signals only for mice with have local field potential electrode in a same brain area as the retrograde viral injection
-    ->FibSession
-    ---
-    quality_hip: int                         # 1 if the LFP signal is of good quality and 0 otherwise
-    quality_pfc: int                         # 1 if the LFP signal is of good quality and 0 otherwise
-    quality_s1: int                          # 1 if the LFP signal is of good quality and 0 otherwise
-    """
-
-    def _make_tuples(self, key):
-        from Schema.AutopopulationFunctionsLCProj import (
-            LFPGoodQuality_autopopulation,
-        )
-
-        LFPGoodQuality_autopopulation(self, key)
-
-@schema
-class LFPSignals(dj.Computed):
-    definition = """
-    #Loading the LFP signals for different recording session depending on their quality and downsample the data
-    ->FibSession
-    ---
-    lfp_s1: longblob                         # lfp singal for the s1 electrode
-    lfp_hip: longblob                        # lfp singal for the hip electrode
-    lfp_pfc: longblob                        # lfp singal for the pfc electrode
-    """
-
-    def _make_tuples(self, key):
-        from Schema.AutopopulationFunctionsLCProj import (
-            LFPSignals_autopopulation,
-        )
-
-        LFPSignals_autopopulation(self, key)
-
-@schema
 class SDSession(dj.Manual):
     definition = """
     #Experimental session of normal sleep deprivation without stimuli
@@ -341,24 +305,6 @@ class NremRemMeanDFF(dj.Computed):
 
         NremRemMeanDFF_autopopulation(self, key)
 
-@schema
-class NremRemMeanDFFSDD(dj.Computed):
-    definition = """
-    #Mean DFF activity between two consolidated REM episodes
-    -> SSDSession
-    ---
-    inter_rem_length   :longblob                      # binned DFF values between two REM episodes kept seperately to split by length of preceding REM
-    rem_length   :longblob                            # lenght of the preceding REM used for inter_rem_length
-    """
-
-    def _make_tuples(self, key):
-        from Schema.AutopopulationFunctionsLCProj import (
-            NremRemMeanDFFSSD_autopopulation,
-        )
-
-        NremRemMeanDFFSSD_autopopulation(self, key)
-
-
 
 @schema
 class LCPeaks(dj.Computed):
@@ -415,65 +361,6 @@ class MGT(dj.Computed):
         )
 
         MGT_autopopulation(self, key)
-
-@schema
-class MGTHipLFP(dj.Computed):
-    definition = """
-    #Compute the Gabor Morlet Wavelet Transform from the LFP signal
-    #for different bands of interest.
-
-    ->LFPGoodQuality
-    ---
-    delta_hip  :longblob                                # delta band (1.5-4Hz)
-    sigma_hip  :longblob                                # sigma band (10-15Hz)
-    gamma_hip  :longblob                                # gamma band (60-80Hz)
-    """
-
-    def _make_tuples(self, key):
-        from Schema.AutopopulationFunctionsLCProj import (
-            MGTHipLFP_autopopulation,
-        )
-
-        MGTHipLFP_autopopulation(self, key)
-
-@schema
-class MGTS1LFP (dj.Computed):
-    definition = """
-    #Compute the Gabor Morlet Wavelet Transform from the LFP signal
-    #for different bands of interest.
-
-    ->LFPGoodQuality
-    ---
-    delta_s1  :longblob                                 # delta band (1.5-4Hz)
-    sigma_s1  :longblob                                 # sigma band (10-15Hz)
-    gamma_s1  :longblob                                 # gamma band (60-80Hz)
-    """
-
-    def _make_tuples(self, key):
-        from Schema.AutopopulationFunctionsLCProj import (
-            MGTS1LFP_autopopulation,
-        )
-
-        MGTS1LFP_autopopulation(self, key)
-@schema
-class MGTPfcLFP(dj.Computed):
-    definition = """
-    #Ccompute the Gabor Morlet Wavelet Transform from the LFP signal
-    #for different bands of interest.
-
-    ->LFPGoodQuality
-    ---
-    delta_pfc  :longblob                                # delta band (1.5-4Hz)
-    sigma_pfc  :longblob                                # sigma band (10-15Hz)
-    gamma_pfc  :longblob                                # gamma band (60-80Hz)    """
-
-    def _make_tuples(self, key):
-        from Schema.AutopopulationFunctionsLCProj import (
-            MGTPfcLFP_autopopulation,
-        )
-
-        MGTPfcLFP_autopopulation(self, key)
-
 
 @schema
 class HR(dj.Computed):
